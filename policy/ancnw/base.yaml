@@ -1,6 +1,6 @@
 # Copyright (c) 2024-2025 Ziqi Fan
 # SPDX-License-Identifier: Apache-2.0
-#�������ֵһ����"��"�� URDF,һ������Χ�� URDF ������/���˶�ѧ(FK/IK)�������,����һ�������ֵ�������/��̬����
+#�������ֵһ����"��"�� URDF,һ������Χ�� URDF ������/���˶�ѧ(FK/IK)�������,����һ�������ֵ�������/��̬����
 # IMPORTANT: every 16-long array in this file is in POLICY order, i.e.
 #   0..11  12 leg joints (fl_hip, fl_thigh, fl_calf, fr_..., hl_..., hr_...)
 #   12..15 4 wheel joints (fl_wheel, fr_wheel, hl_wheel, hr_wheel)
@@ -24,6 +24,17 @@ ancnw:
              5.0, 5.0, 5.0, 5.0]
   num_of_dofs: 16
   wheel_indices: [12, 13, 14, 15]
+  # Passive（启动后 / 按 9 趴下后）：用位置环保持趴姿（零位姿，关节全 0 = qpos0，
+  # GetDown 也是插值回这个姿态）。原来是 kp=0 的纯阻尼，腿撑不住机身，启动后会
+  # 慢慢下沉并向后倒。轮子仍是纯阻尼（kp=0, kd=8）：位置抱死会把机器人原地拧翻。
+  # passive_hold: false 可恢复原来的纯阻尼行为。
+  passive_hold: true
+  passive_kp: 80.0
+  passive_kd: 2.0
+  # 趴姿时轮子的驻车刹车：> 0 时把进入 Passive 瞬间的轮角锁住（实测 25 s 漂移从
+  # 0.6 m 降到 ~0）。0 = 纯阻尼（kd 8），机身会缓慢滑走。
+  passive_wheel_kp: 10.0
+  passive_wheel_kd: 2.0
   # URDF effort limits: legs 113 N*m, wheels 19.3 N*m
   torque_limits: [113.0, 113.0, 113.0,
                   113.0, 113.0, 113.0,
@@ -42,7 +53,7 @@ ancnw:
                      0.00,  0.00,  0.00,  0.00]
   # in-place shaking (FSM state "RLFSMStateJitter", keyboard '2')
   # small fast tremor around the standing pose, the wheels never leave the ground
-  jitter_amp: 0.05           # rad on the thigh, ~1.0 cm of wheel motion����ģʽ����Ƶ��
+  jitter_amp: 0.05           # rad on the thigh, ~1.0 cm of wheel motion����ģʽ����Ƶ��
   jitter_freq: 5.0           # Hz
   jitter_calf_ratio: 2.0     # dcalf = -ratio * dthigh, same direction as the lift
   jitter_phase_spread: 0.0   # 0 = all legs in phase (body bounces), 0.5 = diagonal pairs opposed

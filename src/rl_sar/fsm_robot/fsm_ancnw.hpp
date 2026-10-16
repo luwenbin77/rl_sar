@@ -49,7 +49,13 @@ inline void BuildStepTargets(RL &rl,
                              bool &trot)
 {
     const float period = rl.params.Get<float>("step_period", 1.0f);
-    const float lift = rl.params.Get<float>("step_lift", 0.45f);
+    // Ramp the swing amplitude in over the first step_ramp seconds. Entering the
+    // step from RL starts gait_time at ~0, so a leg would otherwise snap to full
+    // lift on the very first frame and yank a support leg away -> the robot tips
+    // forward the instant you press the key.
+    const float ramp_time = rl.params.Get<float>("step_ramp", 1.0f);
+    const float ramp = (ramp_time > 0.0f) ? std::min(1.0f, gait_time / ramp_time) : 1.0f;
+    const float lift = rl.params.Get<float>("step_lift", 0.30f) * ramp;
     const float stance_drop = rl.params.Get<float>("step_stance_drop", 0.10f);
     const float calf_ratio = rl.params.Get<float>("step_calf_ratio", 2.0f);
     trot = rl.params.Get<bool>("step_trot", true);
@@ -156,19 +162,76 @@ class RLFSMStatePassive : public RLFSMState
 public:
     RLFSMStatePassive(RL *rl) : RLFSMState(*rl, "RLFSMStatePassive") {}
 
+    // wheel angles captured when Passive is entered; with passive_wheel_kp > 0
+    // they are held so the robot cannot slowly roll away while lying down
+    std::vector<float> wheel_lock_pos;
+
     void Enter() override
     {
+        wheel_lock_pos.clear();
         std::cout << LOGGER::NOTE << "Entered passive mode. Press '0' (Keyboard) or 'A' (Gamepad) to switch to RLFSMStateGetUp." << std::endl;
     }
 
     void Run() override
     {
+        // Hold the lying-down pose (the zero pose, which is also qpos0 / the pose
+        // GetDown interpolates back to) with a POSITION loop. With the original
+        // damping-only command (kp = 0) the legs cannot carry the body: it sinks
+        // and slowly topples backwards right after start-up.
+        // Set passive_hold: false in base.yaml to get the old damping behaviour.
+        const bool hold = rl.params.Get<bool>("passive_hold", true);
+        const float passive_kp = rl.params.Get<float>("passive_kp", 50.0f);
+        const float passive_kd = rl.params.Get<float>("passive_kd", 2.0f);
+        auto wheels = rl.params.Get<std::vector<int>>("wheel_indices");
+
         for (int i = 0; i < rl.params.Get<int>("num_of_dofs"); ++i)
         {
-            fsm_command->motor_command.dq[i] = 0;
-            fsm_command->motor_command.kp[i] = 0;
-            fsm_command->motor_command.kd[i] = 8;
-            fsm_command->motor_command.tau[i] = 0;
+            bool is_wheel = false;
+            for (int w : wheels)
+            {
+                if (w == i) { is_wheel = true; break; }
+            }
+            if (is_wheel)
+            {
+                // Velocity joints: damping only by default (kd 8). With that the
+                // body still creeps away ~0.6 m in 25 s, so an optional parking
+                // brake holds the wheel angle captured when Passive was entered.
+                const float wheel_kp = rl.params.Get<float>("passive_wheel_kp", 0.0f);
+                if (wheel_kp > 0.0f)
+                {
+                    if (wheel_lock_pos.empty())
+                    {
+                        wheel_lock_pos = fsm_state->motor_state.q;
+                    }
+                    fsm_command->motor_command.q[i] = wheel_lock_pos[i];
+                    fsm_command->motor_command.dq[i] = 0;
+                    fsm_command->motor_command.kp[i] = wheel_kp;
+                    fsm_command->motor_command.kd[i] = rl.params.Get<float>("passive_wheel_kd", 2.0f);
+                    fsm_command->motor_command.tau[i] = 0;
+                }
+                else
+                {
+                    fsm_command->motor_command.dq[i] = 0;
+                    fsm_command->motor_command.kp[i] = 0;
+                    fsm_command->motor_command.kd[i] = 8;
+                    fsm_command->motor_command.tau[i] = 0;
+                }
+            }
+            else if (hold && passive_kp > 0.0f)
+            {
+                fsm_command->motor_command.q[i] = 0.0f;   // zero pose == lying down
+                fsm_command->motor_command.dq[i] = 0;
+                fsm_command->motor_command.kp[i] = passive_kp;
+                fsm_command->motor_command.kd[i] = passive_kd;
+                fsm_command->motor_command.tau[i] = 0;
+            }
+            else
+            {
+                fsm_command->motor_command.dq[i] = 0;
+                fsm_command->motor_command.kp[i] = 0;
+                fsm_command->motor_command.kd[i] = 8;
+                fsm_command->motor_command.tau[i] = 0;
+            }
         }
     }
 
