@@ -1,0 +1,133 @@
+# Copyright (c) 2024-2025 Ziqi Fan
+# SPDX-License-Identifier: Apache-2.0
+
+# Values below are taken from robot_lab:
+#   source/robot_lab/robot_lab/tasks/manager_based/locomotion/velocity/config/wheeled/
+#     deeprobotics_m20/rough_env_cfg.py
+#     deeprobotics_m20/agents/rsl_rl_ppo_cfg.py
+#   source/robot_lab/robot_lab/assets/deeprobotics.py  (DEEPROBOTICS_M20_CFG)
+#
+# IMPORTANT - array ordering
+# --------------------------
+# Every per-joint array in THIS file is indexed by POLICY index:
+#   0..11  12 leg joints  (fl_hipx, fl_hipy, fl_knee, fr_hipx, fr_hipy, fr_knee,
+#                          hl_hipx, hl_hipy, hl_knee, hr_hipx, hr_hipy, hr_knee)
+#   12..15  4 wheel joints (fl_wheel, fr_wheel, hl_wheel, hr_wheel)
+# i.e. write 12 leg values FIRST and append the 4 wheel values at the end
+# (same style as policy/go2w/robot_lab/config.yaml). The policy index is mapped
+# to the MJCF/physical index by `joint_mapping` at the bottom of this file, so
+# base.yaml arrays (physical order) and this file's arrays (policy order) are
+# deliberately written differently.
+#
+# Observation dimension note
+# --------------------------
+# The exported actor takes a 174-dim input, but only its first 57 input columns
+# were actually used during training:
+#
+#   actor.0.weight [512, 174] column norms
+#     cols  0- 2  ang_vel     6.45
+#     cols  3- 5  gravity_vec 6.37
+#     cols  6- 8  commands    6.35
+#     cols  9-24  joint_pos   3.75
+#     cols 25-40  joint_vel   4.30
+#     cols 41-56  actions     1.07   <- trained, but strongly suppressed
+#     cols 57-173 (unused)    1.302 +- 0.057  <- random-init baseline, never updated
+#
+# A gradient update of a first-layer column is proportional to its input value,
+# so a column sitting exactly at the init baseline means that input was constant
+# (in practice 0) throughout training. The same 57-dim structure
+# (3+3+3+16+16+16) with a suppressed `actions` block is found in the known-good
+# b2w / go2w actors in this repo (first layer [512, 57], actions block 1.18 /
+# 1.39 vs 8-12 elsewhere), which is why the trained input is taken to be
+#   ang_vel + gravity_vec + commands + joint_pos + joint_vel + actions.
+#
+# `policy_deploy.onnx` is policy.onnx with those trailing 117 dead input columns
+# removed (input dim 57, batch dim pinned to 1 because rl_sar feeds the model
+# shape straight into Ort::Value::CreateTensor and would fail on the dynamic -1).
+# It is numerically identical to running policy.onnx with 117 trailing zeros
+# (verified: max output diff = 0.0). Regenerate with truncate_to_41.py 57.
+
+M20/robot_lab:
+  model_name: "policy_deploy.onnx"
+  num_observations: 57
+  observations: ["ang_vel", "gravity_vec", "commands", "dof_pos", "dof_vel", "actions"]
+  observations_history: []  # 0 is the latest observation
+  observations_history_priority: "time"  # "time" or "term" priority
+  default_commands: [0.0, 0.0, 0.0]
+  clip_obs: 100.0
+  # legs keep the training-side +-100 clip.
+  # wheels: Isaac's DCMotor clamps the desired velocity to velocity_limit=79.3,
+  # MuJoCo has no joint velocity limit, so the action is clipped here instead.
+  # 79.3 / wheel action_scale(5.0) = 15.86 -> commanded wheel speed <= 79.3 rad/s (Isaac velocity_limit).
+  clip_actions_upper: [100.0, 100.0, 100.0,
+                       100.0, 100.0, 100.0,
+                       100.0, 100.0, 100.0,
+                       100.0, 100.0, 100.0,
+                       15.86, 15.86, 15.86, 15.86]
+  clip_actions_lower: [-100.0, -100.0, -100.0,
+                       -100.0, -100.0, -100.0,
+                       -100.0, -100.0, -100.0,
+                       -100.0, -100.0, -100.0,
+                       -15.86, -15.86, -15.86, -15.86]
+  # legs: stiffness 80 / damping 2.0, wheels: stiffness 0 / damping 0.6 (Isaac DCMotor)
+  # note: rl_sar applies the position term twice (tau + kp*(cmd_q - q)), so the
+  #       effective stiffness/damping are 2x the values below.
+  # note: the wheel rows are the LAST 4 entries - wheels are velocity-actuated,
+  #       they must never receive a position stiffness.
+  rl_kp: [40.0, 40.0, 40.0,
+          40.0, 40.0, 40.0,
+          40.0, 40.0, 40.0,
+          40.0, 40.0, 40.0,
+          0.0, 0.0, 0.0, 0.0]
+  rl_kd: [1.0, 1.0, 1.0,
+          1.0, 1.0, 1.0,
+          1.0, 1.0, 1.0,
+          1.0, 1.0, 1.0,
+          0.6, 0.6, 0.6, 0.6]
+  fixed_kp: [80.0, 80.0, 80.0,
+             80.0, 80.0, 80.0,
+             80.0, 80.0, 80.0,
+             80.0, 80.0, 80.0,
+             0.0, 0.0, 0.0, 0.0]
+  # wheels get a larger fixed damping while getting up: parking-brake effect
+  fixed_kd: [2.0, 2.0, 2.0,
+             2.0, 2.0, 2.0,
+             2.0, 2.0, 2.0,
+             2.0, 2.0, 2.0,
+             5.0, 5.0, 5.0, 5.0]
+  num_of_dofs: 16
+  # legs: hipx 0.125, hipy/knee 0.25 (position action)
+  # wheels: Isaac-side wheel action_scale is 5.0, but rl_sar counts the wheel
+  # damping twice (output_dof_tau = -rl_kd*dq AND kd*(cmd_dq - dq) in SetCommand),
+  # so the realised steady-state velocity is cmd/2 instead of cmd. Doubling the
+  # wheel scale restores the intended velocity (dq_eq = 5 * action).
+  action_scale: [0.125, 0.25, 0.25,
+                 0.125, 0.25, 0.25,
+                 0.125, 0.25, 0.25,
+                 0.125, 0.25, 0.25,
+                 5.0, 5.0, 5.0, 5.0]
+  wheel_indices: [12, 13, 14, 15]
+  # M20: false = fix the wheel speed-halving bug (see rl_sdk.cpp ComputeOutput).
+  # true keeps the old double-damped behaviour for other robots.
+  wheel_tau_damping: false
+  lin_vel_scale: 2.0
+  ang_vel_scale: 0.25
+  dof_pos_scale: 1.0
+  dof_vel_scale: 0.05
+  commands_scale: [1.0, 1.0, 1.0]
+  torque_limits: [76.4, 76.4, 76.4,
+                  76.4, 76.4, 76.4,
+                  76.4, 76.4, 76.4,
+                  76.4, 76.4, 76.4,
+                  21.6, 21.6, 21.6, 21.6]
+  default_dof_pos: [ 0.00, -0.60,  1.00,
+                     0.00, -0.60,  1.00,
+                     0.00,  0.60, -1.00,
+                     0.00,  0.60, -1.00,
+                     0.00,  0.00,  0.00,  0.00]
+  # policy index -> MJCF/physical joint index
+  # MJCF joint order is depth-first: fl_hipx, fl_hipy, fl_knee, fl_wheel,
+  #                                  fr_hipx, fr_hipy, fr_knee, fr_wheel,
+  #                                  hl_hipx, hl_hipy, hl_knee, hl_wheel,
+  #                                  hr_hipx, hr_hipy, hr_knee, hr_wheel
+  joint_mapping: [0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14, 3, 7, 11, 15]

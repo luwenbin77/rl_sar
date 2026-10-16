@@ -203,6 +203,13 @@ public:
     RobotState<float> now_state;
     bool rl_init_done = false;
 
+    // Offset a state adds on top of the policy target (e.g. a stepping gait).
+    // It is subtracted from the joint position/velocity observation before the
+    // policy runs, so the policy does not see - and therefore does not fight -
+    // the added motion. Empty = no hiding.
+    std::vector<float> obs_pos_bias;
+    std::vector<float> obs_vel_bias;
+
     // init
     void InitObservations();
     void InitOutputs();

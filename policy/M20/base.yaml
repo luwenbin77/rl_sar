@@ -1,0 +1,48 @@
+# Copyright (c) 2024-2025 Ziqi Fan
+# SPDX-License-Identifier: Apache-2.0
+
+# IMPORTANT: every 16-long array in this file is in POLICY order, i.e.
+# 12 leg joints first (fl_hipx, fl_hipy, fl_knee, fr_..., hl_..., hr_...)
+# followed by the 4 wheels (fl, fr, hl, hr), exactly like policy/go2w/base.yaml.
+# The FSM (Passive / GetUp / GetDown) writes motor_command with these indices and
+# SetCommand() translates them to the simulator with joint_mapping, so a wrong
+# order here silently feeds the wheel gains to leg joints.
+M20:
+  dt: 0.005
+  decimation: 4
+  fixed_kp: [80.0, 80.0, 80.0,
+             80.0, 80.0, 80.0,
+             80.0, 80.0, 80.0,
+             80.0, 80.0, 80.0,
+             0.0, 0.0, 0.0, 0.0]
+  # wheels are velocity-actuated: no position gain, kd alone acts as a brake
+  fixed_kd: [2.0, 2.0, 2.0,
+             2.0, 2.0, 2.0,
+             2.0, 2.0, 2.0,
+             2.0, 2.0, 2.0,
+             5.0, 5.0, 5.0, 5.0]
+  num_of_dofs: 16
+  wheel_indices: [12, 13, 14, 15]
+  torque_limits: [76.4, 76.4, 76.4,
+                  76.4, 76.4, 76.4,
+                  76.4, 76.4, 76.4,
+                  76.4, 76.4, 76.4,
+                  21.6, 21.6, 21.6, 21.6]
+  default_dof_pos: [ 0.00, -0.60,  1.00,
+                     0.00, -0.60,  1.00,
+                     0.00,  0.60, -1.00,
+                     0.00,  0.60, -1.00,
+                     0.00,  0.00,  0.00,  0.00]
+  # policy index -> MJCF/physical joint index. The MJCF (converted from the URDF)
+  # is ordered per leg (hipx, hipy, knee, wheel), so the wheels sit at 3/7/11/15.
+  joint_mapping: [0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14, 3, 7, 11, 15]
+  joint_names: ["fl_hipx_joint", "fl_hipy_joint", "fl_knee_joint",
+                "fr_hipx_joint", "fr_hipy_joint", "fr_knee_joint",
+                "hl_hipx_joint", "hl_hipy_joint", "hl_knee_joint",
+                "hr_hipx_joint", "hr_hipy_joint", "hr_knee_joint",
+                "fl_wheel_joint", "fr_wheel_joint", "hl_wheel_joint", "hr_wheel_joint"]
+  joint_controller_names: ["fl_hipx_controller", "fl_hipy_controller", "fl_knee_controller",
+                           "fr_hipx_controller", "fr_hipy_controller", "fr_knee_controller",
+                           "hl_hipx_controller", "hl_hipy_controller", "hl_knee_controller",
+                           "hr_hipx_controller", "hr_hipy_controller", "hr_knee_controller",
+                           "fl_wheel_controller", "fr_wheel_controller", "hl_wheel_controller", "hr_wheel_controller"]

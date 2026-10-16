@@ -222,6 +222,44 @@ void RL_Sim::RobotControl()
     this->control.ClearInput();
 
     this->SetCommand(&this->robot_command);
+
+    // Set RL_SIM_DIAG=1 to print base pose / wheel speeds while tuning a robot
+    if (this->mj_data && std::getenv("RL_SIM_DIAG") != nullptr)
+    {
+        static int diag_cnt = 0;
+        if (++diag_cnt % 100 == 0)
+        {
+            // MuJoCo quaternion order: w x y z
+            double w = mj_data->qpos[3], x = mj_data->qpos[4], y = mj_data->qpos[5], z = mj_data->qpos[6];
+            double roll  = std::atan2(2.0 * (w * x + y * z), 1.0 - 2.0 * (x * x + y * y));
+            double pitch = std::asin(std::max(-1.0, std::min(1.0, 2.0 * (w * y - z * x))));
+            double yaw   = std::atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z));
+            printf("[DIAG] z=%.3f roll=%+.1f pitch=%+.1f yaw=%+.1f x=%+.2f y=%+.2f cmd=%.2f/%.2f/%.2f",
+                   mj_data->qpos[2], roll * 57.2958, pitch * 57.2958, yaw * 57.2958,
+                   mj_data->qpos[0], mj_data->qpos[1],
+                   this->control.x, this->control.y, this->control.yaw);
+            // wheel joints in MJCF order: 3(fl) 7(fr) 11(hl) 15(hr)
+            printf(" wheel_dq=%.1f/%.1f/%.1f/%.1f",
+                   mj_data->qvel[6 + 3], mj_data->qvel[6 + 7], mj_data->qvel[6 + 11], mj_data->qvel[6 + 15]);
+            // commanded wheel velocity (policy indices 12..15) vs realised: catches a
+            // wrong wheel PD/damping setup (factor-2 tracking error etc.)
+            printf(" wheel_cmd=%.1f/%.1f/%.1f/%.1f",
+                   this->robot_command.motor_command.dq[12], this->robot_command.motor_command.dq[13],
+                   this->robot_command.motor_command.dq[14], this->robot_command.motor_command.dq[15]);
+            // base linear speed vs wheel surface speed (r = 0.09): are the wheels rolling?
+            double vbase = std::sqrt(mj_data->qvel[0] * mj_data->qvel[0] + mj_data->qvel[1] * mj_data->qvel[1]);
+            printf(" v=%.2f", vbase);
+            std::string contacts;
+            for (int c = 0; c < mj_data->ncon; ++c)
+            {
+                const char *g1 = mj_id2name(mj_model, mjOBJ_GEOM, mj_data->contact[c].geom[0]);
+                const char *g2 = mj_id2name(mj_model, mjOBJ_GEOM, mj_data->contact[c].geom[1]);
+                if (g1 && std::string(g1) != "floor") contacts += std::string(" ") + g1;
+                else if (g2 && std::string(g2) != "floor") contacts += std::string(" ") + g2;
+            }
+            printf(" ncon=%d contact:%s\n", mj_data->ncon, contacts.c_str());
+        }
+    }
 }
 
 void RL_Sim::SetupSysJoystick(const std::string& device, int bits)

@@ -267,6 +267,16 @@ void RL::ComputeOutput(const std::vector<float> &actions, std::vector<float> &ou
     output_dof_pos = pos_actions_scaled + this->params.Get<std::vector<float>>("default_dof_pos");
     output_dof_vel = vel_actions_scaled;
     output_dof_tau = this->params.Get<std::vector<float>>("rl_kp") * (all_actions_scaled + this->params.Get<std::vector<float>>("default_dof_pos") - this->obs.dof_pos) - this->params.Get<std::vector<float>>("rl_kd") * this->obs.dof_vel;
+    // M20 wheel fix: rl_sar applies the wheel PD term again in SetCommand
+    // (ctrl = tau + kp*(qdes-q) + kd*(dqdes-dq)). For wheels rl_kp=0 so
+    // output_dof_tau already contributes -rl_kd*dq, and SetCommand adds another
+    // -rl_kd*dq -> effective damping is 2x and the tracked speed is HALF of the
+    // command relative to Isaac's DCMotor (torque = damping*(v_cmd - dq)). Zero
+    // the feed-forward wheel torque so only the SetCommand PD remains, matching
+    // Isaac 1:1. Default true (old behaviour) keeps other robots untouched.
+    if (!this->params.Get<bool>("wheel_tau_damping", true))
+        for (int i : this->params.Get<std::vector<int>>("wheel_indices"))
+            output_dof_tau[i] = 0.0f;
     output_dof_tau = clamp(output_dof_tau, -this->params.Get<std::vector<float>>("torque_limits"), this->params.Get<std::vector<float>>("torque_limits"));
 }
 

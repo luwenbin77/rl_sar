@@ -1,0 +1,457 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot name="ancnw">
+  <mujoco>
+    <compiler meshdir="../meshes/" balanceinertia="false" discardvisual="false"/>
+  </mujoco>
+  <link name="base_link">
+    <inertial>
+      <origin xyz="0.001803 4.1448e-07 -0.0027627" rpy="0 0 0" />
+      <mass value="17.365" />
+      <inertia ixx="0.031423" ixy="1.3095e-06" ixz="-1.6021e-10" iyy="0.088325" iyz="-1.1857e-10" izz="0.095504" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0" />
+      <geometry>
+        <mesh filename="../meshes/base_link.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.62 0.3 0.17" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="fl_hip">
+    <inertial>
+      <origin xyz="-0.03473469272 0.03426741478 0" rpy="0 0 0" />
+      <mass value="0.5691837695" />
+      <inertia ixx="0.001031364404" ixy="-0.0002973707572" ixz="4.93611251e-19" iyy="0.00102381747" iyz="-3.244088109e-19" izz="0.001112336596" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0" />
+      <geometry>
+        <mesh filename="../meshes/fl_hip.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0.0696 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.10 0.20 0.15" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="fl_thigh">
+    <inertial>
+      <origin xyz="-0.1001271579 -0.0340046149 -0.1001278489" rpy="0 0 0" />
+      <mass value="3.210652957" />
+      <inertia ixx="0.003533235178" ixy="3.042365225e-06" ixz="-0.0004491682014" iyy="0.005054110969" iyz="3.068180498e-06" izz="0.003533866685" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0" />
+      <geometry>
+        <mesh filename="../meshes/fl_thigh.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="-0.098995 0.0025 -0.098995" rpy="0 -2.35619 -0.02525" />
+      <geometry>
+        <cylinder radius="0.055" length="0.28" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="fl_calf">
+    <inertial>
+      <origin xyz="0.07475180192 -0.05369632014 -0.1067710935" rpy="0 0 0" />
+      <mass value="0.5738176924" />
+      <inertia ixx="0.0009059918729" ixy="-7.681871423e-05" ixz="0.0002669398597" iyy="0.001482574161" iyz="0.000109744037" izz="0.000711652797" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0" />
+      <geometry>
+        <mesh filename="../meshes/fl_calf.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0.0803 -0.01205 -0.11468" rpy="0 2.52434 -0.14897" />
+      <geometry>
+        <cylinder radius="0.045" length="0.281" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="fl_wheel">
+    <inertial>
+      <origin xyz="7.113017924e-05 0.05004358058 -9.212244903e-05" rpy="0 0 0" />
+      <mass value="2.344065497" />
+      <inertia ixx="0.007656505181" ixy="4.38714471e-06" ixz="4.07263855e-06" iyy="0.01445422458" iyz="-6.09924389e-06" izz="0.007653775046" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0" />
+      <geometry>
+        <mesh filename="../meshes/fl_wheel.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5707963 0 0" />
+      <geometry>
+        <cylinder radius="0.11" length="0.1" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="fr_hip">
+    <inertial>
+      <origin xyz="-0.03473469272 -0.03426741478 0" rpy="0 0 0" />
+      <mass value="0.5691837695" />
+      <inertia ixx="0.001031364404" ixy="0.0002973707572" ixz="-3.152122688e-19" iyy="0.00102381747" iyz="-6.447509271e-20" izz="0.001112336596" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0" />
+      <geometry>
+        <mesh filename="../meshes/fr_hip.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 -0.0696 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.10 0.20 0.15" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="fr_thigh">
+    <inertial>
+      <origin xyz="-0.1001278489 0.0340046149 -0.1001271579" rpy="0 0 0" />
+      <mass value="3.210652957" />
+      <inertia ixx="0.003533866685" ixy="-3.068180498e-06" ixz="-0.0004491682014" iyy="0.005054110969" iyz="-3.042365225e-06" izz="0.003533235178" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0" />
+      <geometry>
+        <mesh filename="../meshes/fr_thigh.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="-0.098995 -0.0025 -0.098995" rpy="0 -2.35619 0.02525" />
+      <geometry>
+        <cylinder radius="0.055" length="0.28" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="fr_calf">
+    <inertial>
+      <origin xyz="0.07476540674 0.05369631876 -0.1067616028" rpy="0 0 0" />
+      <mass value="0.5738178378" />
+      <inertia ixx="0.0009059719929" ixy="7.685212349e-05" ixz="0.0002669471878" iyy="0.001482574321" iyz="-0.0001097207265" izz="0.0007116729186" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0" />
+      <geometry>
+        <mesh filename="../meshes/fr_calf.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0.0803 0.01205 -0.11468" rpy="0 2.52434 0.14897" />
+      <geometry>
+        <cylinder radius="0.045" length="0.281" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="fr_wheel">
+    <inertial>
+      <origin xyz="6.223877254e-05 -0.05004358055 -9.834821087e-05" rpy="0 0 0" />
+      <mass value="2.344065494" />
+      <inertia ixx="0.007656712236" ixy="-4.230922029e-06" ixz="3.997281395e-06" iyy="0.01445422455" iyz="6.208634152e-06" izz="0.007653567961" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0" />
+      <geometry>
+        <mesh filename="../meshes/fr_wheel.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5707963 0 0" />
+      <geometry>
+        <cylinder radius="0.11" length="0.1" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="hl_hip">
+    <inertial>
+      <origin xyz="0.03473469272 0.03426741478 0" rpy="0 0 0" />
+      <mass value="0.5691837695" />
+      <inertia ixx="0.001031364404" ixy="0.0002973707572" ixz="1.395024087e-19" iyy="0.00102381747" iyz="4.167190211e-19" izz="0.001112336596" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0" />
+      <geometry>
+        <mesh filename="../meshes/hl_hip.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0.0696 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.10 0.20 0.15" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="hl_thigh">
+    <inertial>
+      <origin xyz="0.1001278489 -0.0340046149 -0.1001271579" rpy="0 0 0" />
+      <mass value="3.210652957" />
+      <inertia ixx="0.003533866685" ixy="-3.068180498e-06" ixz="0.0004491682014" iyy="0.005054110969" iyz="3.042365225e-06" izz="0.003533235178" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0" />
+      <geometry>
+        <mesh filename="../meshes/hl_thigh.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0.098995 0.0025 -0.098995" rpy="0 2.35619 0.02525" />
+      <geometry>
+        <cylinder radius="0.055" length="0.28" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="hl_calf">
+    <inertial>
+      <origin xyz="-0.07476540674 -0.05369631876 -0.1067616028" rpy="0 0 0" />
+      <mass value="0.5738178378" />
+      <inertia ixx="0.0009059719929" ixy="7.685212349e-05" ixz="-0.0002669471878" iyy="0.001482574321" iyz="0.0001097207265" izz="0.0007116729186" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0" />
+      <geometry>
+        <mesh filename="../meshes/hl_calf.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="-0.0803 -0.01205 -0.11468" rpy="0 2.52434 -2.99262" />
+      <geometry>
+        <cylinder radius="0.045" length="0.281" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="hl_wheel">
+    <inertial>
+      <origin xyz="-6.223876777e-05 0.05004358057 -9.834827772e-05" rpy="0 0 0" />
+      <mass value="2.344065496" />
+      <inertia ixx="0.00765671225" ixy="-4.230922176e-06" ixz="-3.997280424e-06" iyy="0.01445422457" iyz="-6.208632056e-06" izz="0.007653567961" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0" />
+      <geometry>
+        <mesh filename="../meshes/hl_wheel.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5707963 0 0" />
+      <geometry>
+        <cylinder radius="0.11" length="0.1" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="hr_hip">
+    <inertial>
+      <origin xyz="0.03473469272 -0.03426741478 0" rpy="0 0 0" />
+      <mass value="0.5691837695" />
+      <inertia ixx="0.001031364404" ixy="-0.0002973707572" ixz="-2.853398163e-19" iyy="0.00102381747" iyz="6.950445872e-19" izz="0.001112336596" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0" />
+      <geometry>
+        <mesh filename="../meshes/hr_hip.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 -0.0696 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.10 0.20 0.15" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="hr_thigh">
+    <inertial>
+      <origin xyz="0.1001271579 0.0340046149 -0.1001278489" rpy="0 0 0" />
+      <mass value="3.210652957" />
+      <inertia ixx="0.003533235178" ixy="3.042365225e-06" ixz="0.0004491682014" iyy="0.005054110969" iyz="-3.068180498e-06" izz="0.003533866685" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0" />
+      <geometry>
+        <mesh filename="../meshes/hr_thigh.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0.098995 -0.0025 -0.098995" rpy="0 2.35619 -0.02525" />
+      <geometry>
+        <cylinder radius="0.055" length="0.28" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="hr_calf">
+    <inertial>
+      <origin xyz="-0.07475180192 0.05369632014 -0.1067710935" rpy="0 0 0" />
+      <mass value="0.5738176924" />
+      <inertia ixx="0.0009059918729" ixy="-7.681871423e-05" ixz="-0.0002669398597" iyy="0.001482574161" iyz="-0.000109744037" izz="0.000711652797" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0" />
+      <geometry>
+        <mesh filename="../meshes/hr_calf.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="-0.0803 0.01205 -0.11468" rpy="0 2.52434 2.99262" />
+      <geometry>
+        <cylinder radius="0.045" length="0.281" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="hr_wheel">
+    <inertial>
+      <origin xyz="-7.113014127e-05 -0.05004358055 -9.212240936e-05" rpy="0 0 0" />
+      <mass value="2.344065494" />
+      <inertia ixx="0.007656505166" ixy="4.387145895e-06" ixz="-4.072647833e-06" iyy="0.01445422455" iyz="6.099245108e-06" izz="0.007653775031" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57079632679 0 0" />
+      <geometry>
+        <mesh filename="../meshes/hr_wheel.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5707963 0 0" />
+      <geometry>
+        <cylinder radius="0.11" length="0.1" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="fl_hip_joint" type="revolute">
+    <origin xyz="0.3816 0.1 0" rpy="0 0 0" />
+    <parent link="base_link" />
+    <child link="fl_hip" />
+    <axis xyz="1 0 0" />
+    <limit lower="-0.611" upper="0.436" effort="113" velocity="15.708" />
+    <dynamics damping="0.05" friction="0.01" />
+  </joint>
+  <joint name="fl_thigh_joint" type="revolute">
+    <origin xyz="0 0.1391 0" rpy="0 0 0" />
+    <parent link="fl_hip" />
+    <child link="fl_thigh" />
+    <axis xyz="0 -1 0" />
+    <limit lower="-2.583" upper="2.286" effort="113" velocity="15.708" />
+    <dynamics damping="0.05" friction="0.01" />
+  </joint>
+  <joint name="fl_calf_joint" type="revolute">
+    <origin xyz="-0.19799 0.005 -0.19799" rpy="0 0 0" />
+    <parent link="fl_thigh" />
+    <child link="fl_calf" />
+    <axis xyz="0 -1 0" />
+    <limit lower="-2.792" upper="2.809" effort="113" velocity="15.708" />
+    <dynamics damping="0.05" friction="0.01" />
+  </joint>
+  <joint name="fl_wheel_joint" type="continuous">
+    <origin xyz="0.1606 -0.0241 -0.22936" rpy="0 0 0" />
+    <parent link="fl_calf" />
+    <child link="fl_wheel" />
+    <axis xyz="0 -1 0" />
+    <limit effort="19.3" velocity="94.248" />
+    <dynamics damping="0.05" friction="0.01" />
+  </joint>
+  <joint name="fr_hip_joint" type="revolute">
+    <origin xyz="0.3816 -0.1 0" rpy="0 0 0" />
+    <parent link="base_link" />
+    <child link="fr_hip" />
+    <axis xyz="1 0 0" />
+    <limit lower="-0.436" upper="0.611" effort="113" velocity="15.708" />
+    <dynamics damping="0.05" friction="0.01" />
+  </joint>
+  <joint name="fr_thigh_joint" type="revolute">
+    <origin xyz="0 -0.1391 0" rpy="0 0 0" />
+    <parent link="fr_hip" />
+    <child link="fr_thigh" />
+    <axis xyz="0 -1 0" />
+    <limit lower="-2.583" upper="2.286" effort="113" velocity="15.708" />
+    <dynamics damping="0.05" friction="0.01" />
+  </joint>
+  <joint name="fr_calf_joint" type="revolute">
+    <origin xyz="-0.19799 -0.005 -0.19799" rpy="0 0 0" />
+    <parent link="fr_thigh" />
+    <child link="fr_calf" />
+    <axis xyz="0 -1 0" />
+    <limit lower="-2.792" upper="2.809" effort="113" velocity="15.708" />
+    <dynamics damping="0.05" friction="0.01" />
+  </joint>
+  <joint name="fr_wheel_joint" type="continuous">
+    <origin xyz="0.1606 0.0241 -0.22936" rpy="0 0 0" />
+    <parent link="fr_calf" />
+    <child link="fr_wheel" />
+    <axis xyz="0 -1 0" />
+    <limit effort="19.3" velocity="94.248" />
+    <dynamics damping="0.05" friction="0.01" />
+  </joint>
+  <joint name="hl_hip_joint" type="revolute">
+    <origin xyz="-0.3816 0.1 0" rpy="0 0 0" />
+    <parent link="base_link" />
+    <child link="hl_hip" />
+    <axis xyz="1 0 0" />
+    <limit lower="-0.611" upper="0.436" effort="113" velocity="15.708" />
+    <dynamics damping="0.05" friction="0.01" />
+  </joint>
+  <joint name="hl_thigh_joint" type="revolute">
+    <origin xyz="0 0.1391 0" rpy="0 0 0" />
+    <parent link="hl_hip" />
+    <child link="hl_thigh" />
+    <axis xyz="0 -1 0" />
+    <limit lower="-2.286" upper="2.583" effort="113" velocity="15.708" />
+    <dynamics damping="0.05" friction="0.01" />
+  </joint>
+  <joint name="hl_calf_joint" type="revolute">
+    <origin xyz="0.19799 0.005 -0.19799" rpy="0 0 0" />
+    <parent link="hl_thigh" />
+    <child link="hl_calf" />
+    <axis xyz="0 -1 0" />
+    <limit lower="-2.809" upper="2.792" effort="113" velocity="15.708" />
+    <dynamics damping="0.05" friction="0.01" />
+  </joint>
+  <joint name="hl_wheel_joint" type="continuous">
+    <origin xyz="-0.1606 -0.0241 -0.22936" rpy="0 0 0" />
+    <parent link="hl_calf" />
+    <child link="hl_wheel" />
+    <axis xyz="0 -1 0" />
+    <limit effort="19.3" velocity="94.248" />
+    <dynamics damping="0.05" friction="0.01" />
+  </joint>
+  <joint name="hr_hip_joint" type="revolute">
+    <origin xyz="-0.3816 -0.1 0" rpy="0 0 0" />
+    <parent link="base_link" />
+    <child link="hr_hip" />
+    <axis xyz="1 0 0" />
+    <limit lower="-0.436" upper="0.611" effort="113" velocity="15.708" />
+    <dynamics damping="0.05" friction="0.01" />
+  </joint>
+  <joint name="hr_thigh_joint" type="revolute">
+    <origin xyz="0 -0.1391 0" rpy="0 0 0" />
+    <parent link="hr_hip" />
+    <child link="hr_thigh" />
+    <axis xyz="0 -1 0" />
+    <limit lower="-2.286" upper="2.583" effort="113" velocity="15.708" />
+    <dynamics damping="0.05" friction="0.01" />
+  </joint>
+  <joint name="hr_calf_joint" type="revolute">
+    <origin xyz="0.19799 -0.005 -0.19799" rpy="0 0 0" />
+    <parent link="hr_thigh" />
+    <child link="hr_calf" />
+    <axis xyz="0 -1 0" />
+    <limit lower="-2.809" upper="2.792" effort="113" velocity="15.708" />
+    <dynamics damping="0.05" friction="0.01" />
+  </joint>
+  <joint name="hr_wheel_joint" type="continuous">
+    <origin xyz="-0.1606 0.0241 -0.22936" rpy="0 0 0" />
+    <parent link="hr_calf" />
+    <child link="hr_wheel" />
+    <axis xyz="0 -1 0" />
+    <limit effort="19.3" velocity="94.248" />
+    <dynamics damping="0.05" friction="0.01" />
+  </joint>
+</robot>
