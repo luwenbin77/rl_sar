@@ -3,6 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// [2026-10-21] M20 轮式底盘 FSM：被动 / 起身 / RL 行走等模式；轮子用速度环、腿用位置环。
+// 配合 rl_sdk 的 wheel_tau_damping=false 与 wheel_indices 实现与 Isaac 1:1 的轮子力矩。
+
 #ifndef M20_FSM_HPP
 #define M20_FSM_HPP
 
