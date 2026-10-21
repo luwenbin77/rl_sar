@@ -79,6 +79,21 @@ RL_Sim::RL_Sim(int argc, char **argv)
 
     this->mj_model = m;
     this->mj_data = d;
+
+    // [2026-10-21] 默认开启相机跟随：把视角锁定机器人 base body；设置环境变量 RL_SIM_NO_FOLLOW=1 可关闭。
+    // enable follow-camera: keep the view centered on the robot base body.
+    // disable at runtime by setting env RL_SIM_NO_FOLLOW=1.
+    if (std::getenv("RL_SIM_NO_FOLLOW") == nullptr)
+    {
+        int base_id = mj_name2id(m, mjOBJ_BODY, "base_link");
+        if (base_id < 0) base_id = mj_name2id(m, mjOBJ_BODY, "base");
+        if (base_id < 0) base_id = mj_name2id(m, mjOBJ_BODY, "trunk");
+        if (base_id < 0) base_id = mj_name2id(m, mjOBJ_BODY, "robot");
+        if (base_id < 0) base_id = 1;  // fallback: first non-world body
+        sim->SetFollowBody(base_id);
+        std::cout << LOGGER::INFO << "[MuJoCo] Follow-camera enabled on body id " << base_id << std::endl;
+    }
+
     this->SetupSysJoystick("/dev/input/js0", 16); // 16 bits joystick
 
     // read params from yaml
@@ -223,6 +238,7 @@ void RL_Sim::RobotControl()
 
     this->SetCommand(&this->robot_command);
 
+    // [2026-10-21] 诊断打印（环境变量 RL_SIM_DIAG=1）：输出 base 位姿/轮速/指令轮速/接触，用于核对轮子 PD 与跟踪误差。
     // Set RL_SIM_DIAG=1 to print base pose / wheel speeds while tuning a robot
     if (this->mj_data && std::getenv("RL_SIM_DIAG") != nullptr)
     {

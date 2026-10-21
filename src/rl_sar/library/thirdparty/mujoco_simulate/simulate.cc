@@ -2164,6 +2164,12 @@ void Simulate::LoadMessageClear(void) {
 
 
 //------------------------------------- load mjb or xml model --------------------------------------
+// [2026-10-21] 相机跟随：记录要跟随的 body id，下一渲染帧重新吸附 lookat（见 RenderLoop）。
+void Simulate::SetFollowBody(int id) {
+  this->follow_bodyid_ = id;
+  this->follow_init_ = false;  // re-snap lookat on the next rendered frame
+}
+
 void Simulate::LoadOnRenderThread() {
   this->m_ = this->mnew_;
   this->d_ = this->dnew_;
@@ -2702,6 +2708,39 @@ void Simulate::RenderLoop() {
       }
       if (upload_notify) {
         cond_upload_.notify_all();
+      }
+
+      // [2026-10-21] 追尾相机：把 lookat 每帧平移到该 body 的位移量，保持固定视角偏移（FREE 模式下仅平移 lookat）。
+      // follow camera: keep the view centered on a body (chase cam).
+      // In FREE mode MuJoCo derives the camera position from
+      // (lookat, azimuth, elevation, distance), so shifting only lookat by the
+      // body's per-frame displacement keeps a constant offset while following it.
+      if (this->follow_bodyid_ >= 0 && this->m_ != nullptr &&
+          this->follow_bodyid_ < this->m_->nbody && this->d_ != nullptr) {
+        const mjtNum* bp = this->d_->xpos + 3 * this->follow_bodyid_;
+        if (!this->follow_init_) {
+          this->cam.lookat[0] = static_cast<float>(bp[0]);
+          this->cam.lookat[1] = static_cast<float>(bp[1]);
+          this->cam.lookat[2] = static_cast<float>(bp[2]);
+          this->cam.type = mjCAMERA_FREE;
+          this->cam.distance = 4.0;
+          this->cam.elevation = 18.0;
+          this->cam.azimuth = 90.0;
+          this->follow_prev_[0] = bp[0];
+          this->follow_prev_[1] = bp[1];
+          this->follow_prev_[2] = bp[2];
+          this->follow_init_ = true;
+        } else {
+          mjtNum dx = bp[0] - this->follow_prev_[0];
+          mjtNum dy = bp[1] - this->follow_prev_[1];
+          mjtNum dz = bp[2] - this->follow_prev_[2];
+          this->cam.lookat[0] += static_cast<float>(dx);
+          this->cam.lookat[1] += static_cast<float>(dy);
+          this->cam.lookat[2] += static_cast<float>(dz);
+          this->follow_prev_[0] = bp[0];
+          this->follow_prev_[1] = bp[1];
+          this->follow_prev_[2] = bp[2];
+        }
       }
 
       // update scene, doing a full sync if in fully managed mode

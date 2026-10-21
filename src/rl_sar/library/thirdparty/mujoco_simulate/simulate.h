@@ -77,6 +77,10 @@ class Simulate {
   // load mjb or xml model that has been requested by load()
   void LoadOnRenderThread();
 
+  // [2026-10-21] 相机跟随：模型加载后让视角锁定某个 body（追尾相机）。
+  // request the camera to follow a body (chase cam) once the model is loaded
+  void SetFollowBody(int id);
+
   // render the ui to the window
   void Render();
 
@@ -237,6 +241,12 @@ class Simulate {
 
   // rendering: need sync
   int camera = 0;
+
+  // [2026-10-21] 追尾相机状态：follow_bodyid_>=0 时每帧把 lookat 平移到该 body 的位移量。
+  // follow camera: if >=0, the view chases this body each frame (set via SetFollowBody)
+  int follow_bodyid_ = -1;
+  bool follow_init_ = false;
+  mjtNum follow_prev_[3] = {0, 0, 0};
 
   // abstract visualization
   mjvScene scn;
