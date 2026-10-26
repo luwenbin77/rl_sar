@@ -518,6 +518,23 @@ if(SYSTEM_TYPE STREQUAL "Linux")
     endif()
 endif()
 
+# ancnw 真机入口（自研 RK3588 + CAN-FD 轮腿机器人）
+if(SYSTEM_TYPE STREQUAL "Linux")
+    add_executable(rl_real_ancnw
+        src/rl_real_ancnw.cpp
+        library/thirdparty/canfd/canfd_comm.cpp
+    )
+    target_link_libraries(rl_real_ancnw
+        rl_sdk
+        observation_buffer
+        ${YAML_CPP_LIBRARIES}
+        Threads::Threads
+    )
+    target_include_directories(rl_real_ancnw PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/library/thirdparty/canfd
+    )
+endif()
+
 # executable for rl real g1
 if(SYSTEM_TYPE STREQUAL "Linux")
     add_executable(rl_real_g1 src/rl_real_g1.cpp)
